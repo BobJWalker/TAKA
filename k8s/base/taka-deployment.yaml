@@ -29,17 +29,7 @@ spec:
              valueFrom:
                secretKeyRef:
                  name: taka-secrets
-                 key: sumologicUrl
-           - name: SPEAR_INSTANCE_URL
-             valueFrom:
-               secretKeyRef:
-                 name: taka-secrets
-                 key: instanceUrl
-           - name: SPEAR_INSTANCE_API_KEY
-             valueFrom:
-               secretKeyRef:
-                 name: taka-secrets
-                 key: instanceApiKey
+                 key: sumologicUrl           
            - name: SPEAR_ENVIRONMENT
              valueFrom:
                secretKeyRef:
