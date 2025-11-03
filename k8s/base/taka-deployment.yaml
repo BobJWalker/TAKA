@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: taka-web
-          image: bobjwalker99/taka-containers:1.4.5
+          image: bobjwalker99/taka:0.0.2
           imagePullPolicy: "Always"
           ports:
            - containerPort: 8080

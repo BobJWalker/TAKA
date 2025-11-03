@@ -4,8 +4,8 @@ namespace: test-taka
 resources:
   - ../../base
 images:
-  - name: bobjwalker99/taka-containers
-    newName: bobjwalker99/taka-containers
+  - name: bobjwalker99/taka
+    newName: bobjwalker99/taka
     newTag: "0.0.2"
 patches:
   - target:
