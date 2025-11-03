@@ -6,7 +6,7 @@ resources:
 images:
   - name: bobjwalker99/taka-containers
     newName: bobjwalker99/taka-containers
-    newTag: "0.1.98"
+    newTag: "0.0.2"
 patches:
   - target:
       kind: Ingress
