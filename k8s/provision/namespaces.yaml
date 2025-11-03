@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: development-taka
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: test-taka
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: staging-taka
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: production-taka

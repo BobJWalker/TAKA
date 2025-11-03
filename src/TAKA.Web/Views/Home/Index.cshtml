@@ -1,0 +1,20 @@
+﻿@{
+    ViewData["Title"] = "Homepage";
+}
+
+<h2>TAKA</h2>
+
+<div class="panel panel-default">
+    <div class="panel-body">
+        <blockquote>
+            <p>
+                @Model.QuoteText
+            </p>
+            <footer>@Model.Author</footer>
+        </blockquote>
+    </div>
+</div>
+
+<form method="post" asp-action="ReloadPage">
+    <input type="submit" class="btn btn-success btn-lg text-center" style="background-color: blue" value="Give me a quote" />
+</form>

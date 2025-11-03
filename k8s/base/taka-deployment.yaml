@@ -1,0 +1,82 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: taka-deployment  
+spec:
+  replicas: 1
+  selector:
+    matchLabels: 
+      component: taka-web
+  template:
+    metadata:
+      labels:
+        component: taka-web
+    spec:
+      containers:
+        - name: taka-web
+          image: bobjwalker99/taka-containers:1.4.5
+          imagePullPolicy: "Always"
+          ports:
+           - containerPort: 8080
+             name: http-port
+          env:
+           - name: TAKA_SECRET_PHRASE
+             valueFrom:
+               secretKeyRef:
+                 name: taka-secrets
+                 key: homepageDisplay
+           - name: SPEAR_SUMOLOGIC_URL
+             valueFrom:
+               secretKeyRef:
+                 name: taka-credentials
+                 key: sumologicUrl
+           - name: SPEAR_INSTANCE_URL
+             valueFrom:
+               secretKeyRef:
+                 name: taka-credentials
+                 key: instanceUrl
+           - name: SPEAR_INSTANCE_API_KEY
+             valueFrom:
+               secretKeyRef:
+                 name: taka-credentials
+                 key: instanceApiKey
+           - name: SPEAR_ENVIRONMENT
+             valueFrom:
+               secretKeyRef:
+                 name: taka-credentials
+                 key: environment
+           - name: SPEAR_OPEN_FEATURE_CLIENT_ID
+             valueFrom:
+               secretKeyRef:
+                 name: taka-credentials
+                 key: openFeatureClientId    
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: taka-app-cluster-ip-service  
+spec:
+  type: ClusterIP
+  selector:
+    component: taka-web
+  ports:
+    - port: 6801
+      targetPort: 8080
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: taka-ingress-nginx
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: taka.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: taka-app-cluster-ip-service
+                port:                
+                  number: 6801

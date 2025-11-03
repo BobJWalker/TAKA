@@ -1,0 +1,329 @@
+name: Build CI
+
+on:
+  push:
+    branches: 
+      - main
+      - 'feature/**'
+      - 'features/**'
+      - 'hotfix/**'
+    paths:
+      - 'src/**'
+      - 'db/**'
+      - 'k8s/**'
+      - '.github/workflows/build.yml'      
+  workflow_dispatch:      
+jobs:
+  prep:
+    runs-on: ubuntu-latest
+    name: Deploy Preparation
+    outputs:       
+      sem_ver: ${{ steps.determine_version.outputs.AssemblySemFileVer }}
+    permissions:
+      # Add any additional permissions your job requires here
+      id-token: write # This is required to obtain the ID token from GitHub Actions     
+    steps:  
+      - name: Set environment variable based on branch
+        id: set_env_var
+        run: |
+          echo "GITHUB_REF: $GITHUB_REF"
+          echo "GITHUB_HEAD_REF: $GITHUB_HEAD_REF"
+          BRANCH_NAME="${GITHUB_REF#refs/heads/}"
+          echo "Branch detected: $BRANCH_NAME"
+          
+          if [ "$BRANCH_NAME" = "main" ]; then         
+            echo "GIT_VERSION_INCREMENT=Patch" >> $GITHUB_ENV            
+            echo "GIT_VERSION_MODE=ContinuousDeployment" >> $GITHUB_ENV 
+            echo "GIT_VERSION_FORMAT={Major}.{Minor}.{Patch}" >> $GITHUB_ENV        
+          else            
+            echo "GIT_VERSION_INCREMENT=Patch" >> $GITHUB_ENV            
+            echo "GIT_VERSION_MODE=ContinuousDelivery" >> $GITHUB_ENV
+            echo "GIT_VERSION_FORMAT={Major}.{Minor}.{Patch}-{EscapedBranchName}.{CommitsSinceVersionSource}" >> $GITHUB_ENV
+          fi
+      - uses: actions/checkout@v1
+        with:
+          fetch-depth: '0'            
+      - name: Install GitVersion
+        uses: gittools/actions/gitversion/setup@v1
+        with:
+            versionSpec: 6.0.5
+      - id: determine_version
+        name: Determine Version
+        uses: gittools/actions/gitversion/execute@v1
+        with:
+            additionalArguments: /overrideconfig assembly-file-versioning-format=${{ env.GIT_VERSION_FORMAT }} /overrideconfig increment=${{ env.GIT_VERSION_INCREMENT }} /overrideconfig mode=${{ env.GIT_VERSION_MODE }} /overrideconfig update-build-number=true
+  test:
+    name: Run Unit Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code for unit tests
+        uses: actions/checkout@v1        
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: 9.x       
+
+      - name: Install dependencies
+        run: dotnet restore src/TAKA.sln
+
+      - name: Run unit tests
+        run: dotnet test src/TAKA.Tests/TAKA.Tests.csproj --configuration Release --collect "Code coverage" --logger trx --results-directory /tmp/testresults        
+      - name: Attach test results as build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: |
+            /tmp/testresults/*.trx
+
+  scan:
+    name: Scan Repo for Vulnerabilities
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Trivy vulnerability scanner on repo
+        uses: aquasecurity/trivy-action@0.33.1
+        with:
+          scan-type: 'fs'
+          ignore-unfixed: true
+          exit-code: '0'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+          severity: 'LOW,MEDIUM,HIGH,CRITICAL'
+
+      - name: Upload Trivy scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: 'trivy-results.sarif'       
+
+  gh_release:  
+    name: Create GitHub Release
+    needs: [prep, test, scan]  
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write      
+      contents: write
+    steps:   
+      - name: Checkout Code to build website
+        uses: actions/checkout@v1   
+        if: github.ref == 'refs/heads/main'
+
+      - name: Create Release for GitHub
+        id: create_release
+        uses: ncipollo/release-action@v1 
+        if: github.ref == 'refs/heads/main'       
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
+        with:
+          tag: "${{ needs.prep.outputs.sem_Ver }}"
+          name: Release ${{ needs.prep.outputs.sem_Ver }}
+          body: |
+            Automatic Release creation by GitHub Action
+            Commit Message: ${{ github.event.head_commit.message }}
+          draft: false
+
+  build_and_publish_website:
+    name: Build, Scan, and Publish Website
+    outputs:       
+      website_hash: ${{ steps.get_digest.outputs.TAKA_DOCKER_SHA }}
+    needs: [prep, test, scan, gh_release]                 
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code to build website
+        uses: actions/checkout@v1
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: linux/amd64,linux/arm64
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: 9.x                 
+    
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:             
+            username: ${{ secrets.DOCKERHUB_USERNAME }}
+            password: ${{ secrets.DOCKERHUB_PAT }}
+
+      - name: Build and push by digest
+        id: build_container
+        uses: docker/build-push-action@v6        
+        with:   
+          context: src/TAKA.Web
+          platforms: |
+            linux/amd64
+            linux/arm64
+          provenance: false          
+          build-args: |
+            APP_VERSION=${{ needs.prep.outputs.sem_Ver }}
+          tags: ${{ vars.DOCKER_HUB_REPO }}:${{ needs.prep.outputs.sem_Ver }},${{ vars.DOCKER_HUB_REPO }}:latest
+          outputs: type=image,name-canonical=true,push=true                                                   
+
+      - name: Run Trivy vulnerability scanner on docker container
+        uses: aquasecurity/trivy-action@0.33.1
+        env:
+          TRIVY_SKIP_VERSION_CHECK: true
+        with:
+          image-ref: '${{ vars.DOCKER_HUB_REPO }}:${{ needs.prep.outputs.sem_Ver }}'
+          vuln-type: 'os,library'
+          ignore-unfixed: true
+          exit-code: '0'
+          format: 'sarif'          
+          output: 'trivy-image-results.sarif'          
+          severity: 'LOW,MEDIUM,HIGH,CRITICAL'
+
+      - name: Upload Trivy scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: 'trivy-image-results.sarif'
+      
+      - name: get docker image sha
+        working-directory: src
+        id: get_digest
+        run: |            
+            dockerSha="${{ steps.build_container.outputs.digest }}"
+            echo "Docker sha is $dockerSha"            
+            echo "TAKA_DOCKER_SHA=$dockerSha" >> $GITHUB_OUTPUT
+
+  sbom:    
+    name: Generate and Publish SBOM           
+    outputs:       
+      sbom_hash: ${{ steps.determine_sbom_hash.outputs.SBOM_HASH }}
+    needs: [prep, test, scan, gh_release]  
+    runs-on: ubuntu-latest 
+    permissions:
+      # Add any additional permissions your job requires here
+      id-token: write # This is required to obtain the OIDC Token for Octopus Deploy
+    steps:      
+      - name: Checkout the code for SBOM
+        uses: actions/checkout@v1
+        with:
+          fetch-depth: '0'  
+            
+      - name: Run Trivy in GitHub SBOM mode and submit results to Dependency Graph
+        uses: aquasecurity/trivy-action@0.33.1
+        with:
+          scan-type: 'fs'
+          format: 'github'
+          output: 'gh-dependency-results.sbom.json'
+          scan-ref: '.'
+          github-pat: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Run Trivy in for SPDX mode for Octopus Deploy
+        uses: aquasecurity/trivy-action@0.33.1
+        with:
+          scan-type: 'fs'
+          format: 'spdx-json'
+          output: 'dependency-results.sbom.json'
+          scan-ref: '.'          
+
+      - name: Package SBOM
+        id: "sbom_package"
+        uses: OctopusDeploy/create-zip-package-action@v3
+        with:
+          package_id: TAKA.SBOM
+          version: "${{ needs.prep.outputs.sem_Ver }}"  
+          base_path: "./"          
+          files: "dependency-results.sbom.json"
+          output_folder: packaged                               
+      
+      - name: Create the Subject Checksum file for Attestation Build Provenance 
+        id: determine_sbom_hash  
+        shell: pwsh        
+        run: |
+          $packageHash = Get-FileHash -path "packaged/TAKA.SBOM.${{ needs.prep.outputs.sem_Ver }}.zip" -Algorithm SHA256
+          $hashToSave = $packageHash.Hash 
+          Write-Host "The SBOM package hash is $hashToSave"
+          
+          "SBOM_HASH=$hashToSave" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+  
+      - name: Login to Octopus Deploy 🐙
+        uses: OctopusDeploy/login@v1
+        with: 
+          server: ${{ vars.OCTOPUS_SERVER_URL }}
+          service_account_id: ${{ secrets.OCTOPUS_OIDC_SERVICE_ACCOUNT_ID }}
+      - name: Push packages to Octopus 🐙
+        uses: OctopusDeploy/push-package-action@v3
+        with:
+          server: ${{ vars.OCTOPUS_SERVER_URL }}
+          space: ${{ vars.OCTOPUS_SPACE }}
+          packages: |
+            packaged/TAKA.SBOM.${{ needs.prep.outputs.sem_Ver }}.zip       
+      - name: Push build information to Octopus 🐙
+        uses: OctopusDeploy/push-build-information-action@v3
+        with:
+          packages: |          
+            TAKA.SBOM                               
+          version: "${{ needs.prep.outputs.sem_Ver }}"
+          server: ${{ vars.OCTOPUS_SERVER_URL }}
+          space: ${{ vars.OCTOPUS_SPACE }}  
+
+  create_attestations:  
+    name: Generate Attestations
+    needs: [prep, test, scan, sbom, gh_release, build_and_publish_website]  
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      attestations: write # Required to publish attestations      
+    steps:         
+      - name: Create the Subject Checksum file for Provenance        
+        shell: pwsh        
+        run: |                    
+          $cleanedSbomSha = $("${{ needs.sbom.outputs.sbom_hash }}" -replace "sha256:", "").Trim()
+          $cleanedImageSha = $("${{ needs.build_and_publish_website.outputs.website_hash }}" -replace "sha256:", "").Trim()
+
+          $imageSubject = "${{ vars.DOCKER_HUB_REPO }}:${{ needs.prep.outputs.sem_Ver }}".Trim()          
+          $sbomSubject = "TAKA.SBOM.${{ needs.prep.outputs.sem_Ver }}.zip".Trim()
+
+          Write-Host "The website information is $cleanedImageSha  $imageSubject"          
+          Write-Host "The SBOM information is $cleanedSbomSha  $sbomSubject"
+
+          $subjectText = @"
+          $cleanedImageSha  $imageSubject          
+          $cleanedSbomSha  $sbomSubject
+          "@
+
+          Write-Host "Creating the checksums file"
+          New-Item -Path . -Name "subject.checksums.txt" -ItemType "File" -Value $subjectText      
+      - name: Generate Attestation from Provenance
+        uses: actions/attest-build-provenance@v2
+        id: websiteattest
+        with:
+            subject-checksums: subject.checksums.txt        
+
+  octopus_deploy:  
+    name: Handover to Octopus Deploy
+    needs: [prep, test, scan, sbom, build_and_publish_website, gh_release, create_attestations]  
+    runs-on: ubuntu-latest
+    permissions:
+      # Add any additional permissions your job requires here
+      id-token: write # This is required to obtain the OIDC Token for Octopus Deploy 
+    steps:
+      - name: Login to Octopus Deploy 🐙
+        uses: OctopusDeploy/login@v1
+        with: 
+          server: ${{ vars.OCTOPUS_SERVER_URL }}
+          service_account_id: ${{ secrets.OCTOPUS_OIDC_SERVICE_ACCOUNT_ID }}         
+      - name: Create and deploy release in Octopus 🐙
+        uses: OctopusDeploy/create-release-action@v3
+        with:
+          server: ${{ vars.OCTOPUS_SERVER_URL }}
+          space: ${{ vars.OCTOPUS_SPACE }}
+          project: ${{ vars.OCTOPUS_PROJECT_NAME }}
+          channel: ${{ vars.OCTOPUS_RELEASE_CHANNEL }}
+          package_version: "${{ needs.prep.outputs.sem_Ver }}" 
+          release_number: "${{ needs.prep.outputs.sem_Ver }}"
+          # git_ref: ${{ (github.ref_type == 'tag' && github.event.repository.default_branch ) || (github.head_ref || github.ref) }}
+          # git_commit: ${{ github.event.after || github.event.pull_request.head.sha }} 
+
+
