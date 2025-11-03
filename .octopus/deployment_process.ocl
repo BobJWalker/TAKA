@@ -1,0 +1,63 @@
+step "azure-key-vault-retrieve-secrets" {
+    name = "Azure Key Vault - Retrieve Secrets"
+
+    action {
+        properties = {
+            Azure.KeyVault.RetrieveSecrets.Account = "Azure.Account"
+            Azure.KeyVault.RetrieveSecrets.PrintVariableNames = "False"
+            Azure.KeyVault.RetrieveSecrets.VaultName = "#{KeyVault.Azure.Name}"
+            Azure.KeyVault.RetrieveSecrets.VaultSecrets = "#{KeyVault.Azure.Secrets.List}"
+            Octopus.Action.Template.Id = "ActionTemplates-561"
+            Octopus.Action.Template.Version = "2"
+        }
+        worker_pool_variable = "Standards.Worker.Pool"
+
+        container {
+            feed = "dockerhub"
+            image = "#{Azure.ExecutionContainer.Name}"
+        }
+    }
+}
+
+process_template "run-a-process-template" {
+    name = "Run a Process Template"
+    process_template_slug = "deploy-process-verify-build-artifacts"
+    version_mask = "2.X"
+
+    package_parameter "Template.SBOM.Artifact" {
+        feed = "octopus-server-built-in"
+        package_id = "TAKA.SBOM"
+    }
+
+    parameter "Template.Git.AuthToken" {
+        value = "#{KeyVault.Azure.Secrets.List}"
+    }
+
+    parameter "Template.Verify.WorkerPool" {
+        value = "#{Standards.Worker.Pool}"
+    }
+
+    parameter "Template.Verify.ExecutionContainerFeed" {
+        value = "Feeds-1283"
+    }
+}
+
+step "slack-send-simple-notification" {
+    condition = "Always"
+    name = "Slack - Send Simple Notification"
+
+    action {
+        properties = {
+            Octopus.Action.Template.Id = "ActionTemplates-101"
+            Octopus.Action.Template.Version = "15"
+            ssn_Channel = "trident-status"
+            ssn_Color = "good"
+            ssn_HookUrl = "#{Notification.Slack.Webhook.Url}"
+            ssn_IconUrl = "https://octopus.com/content/resources/favicon.png"
+            ssn_Message = "#{Notification.Body.Text}"
+            ssn_Title = "#{Notification.DeploymentStatus.Subject.Text}"
+            ssn_Username = "Octopus Deploy"
+        }
+        worker_pool_variable = "Standards.Worker.Pool"
+    }
+}
