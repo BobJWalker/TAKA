@@ -28,27 +28,27 @@ spec:
            - name: SPEAR_SUMOLOGIC_URL
              valueFrom:
                secretKeyRef:
-                 name: taka-credentials
+                 name: taka-secrets
                  key: sumologicUrl
            - name: SPEAR_INSTANCE_URL
              valueFrom:
                secretKeyRef:
-                 name: taka-credentials
+                 name: taka-secrets
                  key: instanceUrl
            - name: SPEAR_INSTANCE_API_KEY
              valueFrom:
                secretKeyRef:
-                 name: taka-credentials
+                 name: taka-secrets
                  key: instanceApiKey
            - name: SPEAR_ENVIRONMENT
              valueFrom:
                secretKeyRef:
-                 name: taka-credentials
+                 name: taka-secrets
                  key: environment
            - name: SPEAR_OPEN_FEATURE_CLIENT_ID
              valueFrom:
                secretKeyRef:
-                 name: taka-credentials
+                 name: taka-secrets
                  key: openFeatureClientId    
 ---
 apiVersion: v1
