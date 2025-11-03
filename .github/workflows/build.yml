@@ -80,7 +80,9 @@ jobs:
   scan:
     name: Scan Repo for Vulnerabilities
     runs-on: ubuntu-latest
-
+    permissions:
+        security-events: write
+        contents: read
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -203,7 +205,8 @@ jobs:
     runs-on: ubuntu-latest 
     permissions:
       # Add any additional permissions your job requires here
-      id-token: write # This is required to obtain the OIDC Token for Octopus Deploy
+      id-token: write # This is required to obtain the OIDC Token for Octopus Deploy      
+      security-events: write      
     steps:      
       - name: Checkout the code for SBOM
         uses: actions/checkout@v1
