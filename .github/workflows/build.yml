@@ -134,6 +134,10 @@ jobs:
       website_hash: ${{ steps.get_digest.outputs.TAKA_DOCKER_SHA }}
     needs: [prep, test, scan, gh_release]                 
     runs-on: ubuntu-latest
+    permissions:
+      # Add any additional permissions your job requires here
+      id-token: write # This is required to obtain the OIDC Token for Octopus Deploy      
+      security-events: write  
     steps:
       - name: Checkout Code to build website
         uses: actions/checkout@v1
