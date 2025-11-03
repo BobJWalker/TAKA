@@ -10,7 +10,6 @@ on:
     paths:
       - 'src/**'
       - 'db/**'
-      - 'k8s/**'
       - '.github/workflows/build.yml'      
   workflow_dispatch:      
 jobs:
