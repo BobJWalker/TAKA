@@ -6,7 +6,7 @@ resources:
 images:
 - name: bobjwalker99/taka
   newName: bobjwalker99/taka
-  newTag: "0.0.6"
+  newTag: "2.4.8"
 
 patches:
  - target:
