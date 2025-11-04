@@ -2,6 +2,11 @@ step "azure-key-vault-retrieve-secrets" {
     name = "Azure Key Vault - Retrieve Secrets"
 
     action {
+        notes = <<-EOT
+                **Always Runs**
+                
+                Pulls the appropriate secrets from Azure Key Vault for this deployment to work.
+                EOT
         properties = {
             Azure.KeyVault.RetrieveSecrets.Account = "Azure.Account"
             Azure.KeyVault.RetrieveSecrets.PrintVariableNames = "False"
@@ -47,6 +52,11 @@ step "update-image-tags-in-argocd" {
 
     action {
         action_type = "Octopus.ArgoCDUpdateImageTags"
+        notes = <<-EOT
+                **Always Runs**
+                
+                Does a git commit to a Kustomize environmental folder so ArgoCD can do it's thing.
+                EOT
         properties = {
             Octopus.Action.ArgoCD.CommitMessageSummary = "Octopus #{Octopus.Environment.Name} manifest image tag to #{Octopus.Release.Number}"
             Octopus.Action.ArgoCD.CommitMethod = "DirectCommit"
@@ -71,6 +81,11 @@ step "slack-send-simple-notification" {
     name = "Slack - Send Simple Notification"
 
     action {
+        notes = <<-EOT
+                **Always Runs**
+                
+                Sends a Slack notification to the team to inform them that a deployment has been completed.
+                EOT
         properties = {
             Octopus.Action.Template.Id = "ActionTemplates-101"
             Octopus.Action.Template.Version = "15"
