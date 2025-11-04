@@ -20,7 +20,7 @@ step "azure-key-vault-retrieve-secrets" {
 }
 
 process_template "run-a-process-template" {
-    name = "Run a Process Template"
+    name = "Verify Build Artifacts"
     process_template_slug = "deploy-process-verify-build-artifacts"
     version_mask = "2.X"
 
@@ -39,6 +39,30 @@ process_template "run-a-process-template" {
 
     parameter "Template.Verify.ExecutionContainerFeed" {
         value = "Feeds-1283"
+    }
+}
+
+step "update-image-tags-in-argocd" {
+    name = "Update Image Tags In ArgoCD"
+
+    action {
+        action_type = "Octopus.ArgoCDUpdateImageTags"
+        properties = {
+            Octopus.Action.ArgoCD.CommitMessageSummary = "Octopus #{Octopus.Environment.Name} manifest image tag to #{Octopus.Release.Number}"
+            Octopus.Action.ArgoCD.CommitMethod = "DirectCommit"
+        }
+        worker_pool_variable = "Standards.Worker.Pool"
+
+        packages "taka" {
+            acquisition_location = "NotAcquired"
+            feed = "dockerhub"
+            package_id = "bobjwalker99/taka"
+            properties = {
+                Extract = "False"
+                Purpose = "DockerImageReference"
+                SelectionMode = "immediate"
+            }
+        }
     }
 }
 
