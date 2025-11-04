@@ -29,16 +29,16 @@ process_template "run-a-process-template" {
         package_id = "TAKA.SBOM"
     }
 
-    parameter "Template.Git.AuthToken" {
-        value = "#{KeyVault.Azure.Secrets.List}"
-    }
-
     parameter "Template.Verify.WorkerPool" {
         value = "#{Standards.Worker.Pool}"
     }
 
     parameter "Template.Verify.ExecutionContainerFeed" {
         value = "Feeds-1283"
+    }
+
+    parameter "Template.Git.AuthToken" {
+        value = "#{KeyVault.GitHub.Token}"
     }
 }
 
