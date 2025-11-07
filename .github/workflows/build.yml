@@ -10,7 +10,6 @@ on:
     paths:
       - 'src/**'
       - 'db/**'
-      - 'k8s/**'
       - '.github/workflows/build.yml'      
   workflow_dispatch:      
 jobs:
@@ -330,7 +329,7 @@ jobs:
           channel: ${{ vars.OCTOPUS_RELEASE_CHANNEL }}
           package_version: "${{ needs.prep.outputs.sem_Ver }}" 
           release_number: "${{ needs.prep.outputs.sem_Ver }}"
-          # git_ref: ${{ (github.ref_type == 'tag' && github.event.repository.default_branch ) || (github.head_ref || github.ref) }}
-          # git_commit: ${{ github.event.after || github.event.pull_request.head.sha }} 
+          git_ref: ${{ (github.ref_type == 'tag' && github.event.repository.default_branch ) || (github.head_ref || github.ref) }}
+          git_commit: ${{ github.event.after || github.event.pull_request.head.sha }} 
 
 

@@ -5,6 +5,9 @@ secretGenerator:
 - name: taka-secrets
   literals:
   - homepageDisplay=blah  
+  - sumologicUrl=blah
+  - environment=Development
+  - openFeatureClientId=blah
 
 resources:
 - taka-deployment.yaml

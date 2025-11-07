@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: taka-web
-          image: bobjwalker99/taka-containers:1.4.5
+          image: bobjwalker99/taka:0.0.2
           imagePullPolicy: "Always"
           ports:
            - containerPort: 8080
@@ -28,27 +28,17 @@ spec:
            - name: SPEAR_SUMOLOGIC_URL
              valueFrom:
                secretKeyRef:
-                 name: taka-credentials
-                 key: sumologicUrl
-           - name: SPEAR_INSTANCE_URL
-             valueFrom:
-               secretKeyRef:
-                 name: taka-credentials
-                 key: instanceUrl
-           - name: SPEAR_INSTANCE_API_KEY
-             valueFrom:
-               secretKeyRef:
-                 name: taka-credentials
-                 key: instanceApiKey
+                 name: taka-secrets
+                 key: sumologicUrl           
            - name: SPEAR_ENVIRONMENT
              valueFrom:
                secretKeyRef:
-                 name: taka-credentials
+                 name: taka-secrets
                  key: environment
            - name: SPEAR_OPEN_FEATURE_CLIENT_ID
              valueFrom:
                secretKeyRef:
-                 name: taka-credentials
+                 name: taka-secrets
                  key: openFeatureClientId    
 ---
 apiVersion: v1

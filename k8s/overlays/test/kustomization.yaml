@@ -4,9 +4,9 @@ namespace: test-taka
 resources:
   - ../../base
 images:
-  - name: bobjwalker99/taka-containers
-    newName: bobjwalker99/taka-containers
-    newTag: "0.1.98"
+  - name: bobjwalker99/taka
+    newName: bobjwalker99/taka
+    newTag: "2.4.9"
 patches:
   - target:
       kind: Ingress

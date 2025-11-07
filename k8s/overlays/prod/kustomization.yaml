@@ -4,9 +4,9 @@ namespace: production-taka
 resources:
 - ../../base
 images:
- - name: bobjwalker99/taka-containers
-   newName: bobjwalker99/taka-containers
-   newTag: "0.1.79.1"
+- name: bobjwalker99/taka
+  newName: bobjwalker99/taka
+  newTag: "2.4.8"
 
 patches:
  - target:

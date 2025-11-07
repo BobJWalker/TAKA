@@ -1,0 +1,102 @@
+step "azure-key-vault-retrieve-secrets" {
+    name = "Azure Key Vault - Retrieve Secrets"
+
+    action {
+        notes = <<-EOT
+                **Always Runs**
+                
+                Pulls the appropriate secrets from Azure Key Vault for this deployment to work.
+                EOT
+        properties = {
+            Azure.KeyVault.RetrieveSecrets.Account = "Azure.Account"
+            Azure.KeyVault.RetrieveSecrets.PrintVariableNames = "False"
+            Azure.KeyVault.RetrieveSecrets.VaultName = "#{KeyVault.Azure.Name}"
+            Azure.KeyVault.RetrieveSecrets.VaultSecrets = "#{KeyVault.Azure.Secrets.List}"
+            Octopus.Action.Template.Id = "ActionTemplates-561"
+            Octopus.Action.Template.Version = "2"
+        }
+        worker_pool_variable = "Standards.Worker.Pool"
+
+        container {
+            feed = "dockerhub"
+            image = "#{Azure.ExecutionContainer.Name}"
+        }
+    }
+}
+
+process_template "run-a-process-template" {
+    name = "Verify Build Artifacts"
+    process_template_slug = "deploy-process-verify-build-artifacts"
+    version_mask = "2.X"
+
+    package_parameter "Template.SBOM.Artifact" {
+        feed = "octopus-server-built-in"
+        package_id = "TAKA.SBOM"
+    }
+
+    parameter "Template.Verify.WorkerPool" {
+        value = "#{Standards.Worker.Pool}"
+    }
+
+    parameter "Template.Verify.ExecutionContainerFeed" {
+        value = "Feeds-1283"
+    }
+
+    parameter "Template.Git.AuthToken" {
+        value = "#{KeyVault.GitHub.Token}"
+    }
+}
+
+step "update-image-tags-in-argocd" {
+    name = "Update Image Tags In ArgoCD"
+
+    action {
+        action_type = "Octopus.ArgoCDUpdateImageTags"
+        notes = <<-EOT
+                **Always Runs**
+                
+                Does a git commit to a Kustomize environmental folder so ArgoCD can do it's thing.
+                EOT
+        properties = {
+            Octopus.Action.ArgoCD.CommitMessageSummary = "Octopus #{Octopus.Environment.Name} manifest image tag to #{Octopus.Release.Number}"
+            Octopus.Action.ArgoCD.CommitMethod = "DirectCommit"
+        }
+        worker_pool_variable = "Standards.Worker.Pool"
+
+        packages "taka" {
+            acquisition_location = "NotAcquired"
+            feed = "dockerhub"
+            package_id = "bobjwalker99/taka"
+            properties = {
+                Extract = "False"
+                Purpose = "DockerImageReference"
+                SelectionMode = "immediate"
+            }
+        }
+    }
+}
+
+step "slack-send-simple-notification" {
+    condition = "Always"
+    name = "Slack - Send Simple Notification"
+
+    action {
+        notes = <<-EOT
+                **Always Runs**
+                
+                Sends a Slack notification to the team to inform them that a deployment has been completed.
+                EOT
+        properties = {
+            Octopus.Action.Template.Id = "ActionTemplates-101"
+            Octopus.Action.Template.Version = "15"
+            ssn_Channel = "trident-status"
+            ssn_Color = "good"
+            ssn_HookUrl = "#{Notification.Slack.Webhook.Url}"
+            ssn_IconUrl = "https://octopus.com/content/resources/favicon.png"
+            ssn_Message = "#{Notification.Body.Text}"
+            ssn_Title = "#{Notification.DeploymentStatus.Subject.Text}"
+            ssn_Username = "Octopus Deploy"
+        }
+        worker_pool_variable = "Standards.Worker.Pool"
+    }
+}
