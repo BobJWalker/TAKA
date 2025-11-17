@@ -50,7 +50,7 @@ process_template "run-a-process-template" {
 process_template "deploy-to-kubernetes-via-argo" {
     name = "Deploy to Kubernetes via Argo"
     process_template_slug = "deploy-process-k8s-via-argo"
-    version_mask = "1.1.X"
+    version_mask = "1.X"
 
     package_parameter "Template.Package.WebFrontEnd" {
         feed = "dockerhub"
