@@ -8,10 +8,10 @@ images:
     newName: bobjwalker99/taka
     newTag: "2.4.14"
 patches:
-  - target:
-     kind: HTTPRoute
-     name: taka-route
-    patch: |-
+ - target:
+    kind: HTTPRoute
+    name: taka-route
+   patch: |-
     - op: replace
       path: /spec/hostnames/0/
-      value: takatest.bobjwalker.local
+      value: takatest.bobjwalker.local    
