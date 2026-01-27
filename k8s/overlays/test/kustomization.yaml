@@ -13,5 +13,5 @@ patches:
     name: taka-route
    patch: |-
     - op: replace
-      path: /spec/hostnames/0/
+      path: /spec/hostnames/0
       value: takatest.bobjwalker.local    
