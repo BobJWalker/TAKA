@@ -86,3 +86,28 @@ step "slack-send-simple-notification" {
         worker_pool_variable = "Standards.Worker.Pool"
     }
 }
+
+step "update-argo-cd-application-image-tags" {
+    name = "Update Argo CD Application Image Tags"
+
+    action {
+        action_type = "Octopus.ArgoCDUpdateImageTags"
+        properties = {
+            Octopus.Action.ArgoCD.CommitMessageSummary = "Octopus Deploy updated image versions"
+            Octopus.Action.ArgoCD.CommitMethod = "DirectCommit"
+        }
+        worker_pool = "homelab-k8s"
+        worker_pool_variable = ""
+
+        packages "taka" {
+            acquisition_location = "NotAcquired"
+            feed = "dockerhub"
+            package_id = "bobjwalker99/taka"
+            properties = {
+                Extract = "False"
+                Purpose = "DockerImageReference"
+                SelectionMode = "immediate"
+            }
+        }
+    }
+}
