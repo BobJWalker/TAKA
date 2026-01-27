@@ -53,20 +53,18 @@ spec:
     - port: 6801
       targetPort: 8080
 ---
-apiVersion: networking.k8s.io/v1
-kind: Ingress
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
 metadata:
-  name: taka-ingress-nginx
+  name: taka-route
+  namespace: argocd
 spec:
-  ingressClassName: nginx
+  parentRefs:
+  - name: public-gateway
+    namespace: traefik
+  hostnames:
+    - taka.bobjwalker.local
   rules:
-    - host: taka.local
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: taka-app-cluster-ip-service
-                port:                
-                  number: 6801
+    - backendRefs:
+        - name: taka-app-cluster-ip-service
+          port: 6801   

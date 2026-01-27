@@ -9,7 +9,10 @@ images:
   newTag: "2.4.14"
 
 patches:
- - target:
-      kind: Ingress
-      name: taka-ingress-nginx
-   path: taka-ingress-nginx.yaml
+  - target:
+     kind: HTTPRoute
+     name: taka-route
+    patch: |-
+    - op: replace
+      path: /spec/hostnames/0/
+      value: takaprod.bobjwalker.local
