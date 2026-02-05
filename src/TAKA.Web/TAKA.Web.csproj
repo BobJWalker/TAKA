@@ -16,9 +16,9 @@
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.2" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.22.1" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
-    <PackageReference Include="NLog.Extensions.Logging" Version="6.1.0" />
+    <PackageReference Include="NLog.Extensions.Logging" Version="6.1.1" />
     <PackageReference Include="NLog.Targets.Syslog" Version="7.0.0" />
-    <PackageReference Include="NLog.Web.AspNetCore" Version="6.1.0" />
+    <PackageReference Include="NLog.Web.AspNetCore" Version="6.1.1" />
     <PackageReference Include="Octopus.OpenFeature" Version="1.2.2" />
     <PackageReference Include="OpenFeature.Contrib.Providers.EnvVar" Version="0.0.7" />    
     <PackageReference Include="SumoLogic.Logging.NLog" Version="1.1.0" />
