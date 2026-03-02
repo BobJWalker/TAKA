@@ -65,6 +65,17 @@ step "update-argo-cd-application-image-tags" {
             Octopus.Action.ArgoCD.Sync.Mode = "AllEnvironments"
         }
         worker_pool_variable = "Standards.Worker.Pool"
+
+        packages "taka" {
+            acquisition_location = "NotAcquired"
+            feed = "dockerhub"
+            package_id = "bobjwalker99/taka"
+            properties = {
+                Extract = "False"
+                Purpose = "DockerImageReference"
+                SelectionMode = "immediate"
+            }
+        }
     }
 }
 
