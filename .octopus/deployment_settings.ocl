@@ -3,8 +3,5 @@ connectivity_policy {
 }
 
 versioning_strategy {
-    donor_package {
-        package = "taka"
-        step = "update-argo-cd-application-image-tags"
-    }
+    template = "#{Octopus.Version.LastMajor}.#{Octopus.Version.LastMinor}.#{Octopus.Version.LastPatch}.i"
 }
