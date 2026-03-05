@@ -92,9 +92,9 @@ step "slack-send-simple-notification" {
         properties = {
             Octopus.Action.Template.Id = "ActionTemplates-101"
             Octopus.Action.Template.Version = "15"
-            ssn_Channel = "trident-status"
+            ssn_Channel = "#{Notification.Slack.Channel.Name}"
             ssn_Color = "good"
-            ssn_HookUrl = "#{Notification.Slack.Webhook.Url}"
+            ssn_HookUrl = "#{KeyVault.Slack.Webhook.Url}"
             ssn_IconUrl = "https://octopus.com/content/resources/favicon.png"
             ssn_Message = "#{Notification.Body.Text}"
             ssn_Title = "#{Notification.DeploymentStatus.Subject.Text}"
