@@ -6,7 +6,7 @@ resources:
 images:
   - name: bobjwalker99/taka
     newName: bobjwalker99/taka
-    newTag: "2.4.20"
+    newTag: "2.4.21"
 patches:
  - target:
     kind: HTTPRoute
