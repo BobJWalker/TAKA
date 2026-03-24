@@ -87,7 +87,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Run Trivy vulnerability scanner on repo
-        uses: aquasecurity/trivy-action@0.34.2
+        uses: aquasecurity/trivy-action@0.35.0
         with:
           scan-type: 'fs'
           ignore-unfixed: true
@@ -175,7 +175,7 @@ jobs:
           outputs: type=image,name-canonical=true,push=true                                                   
 
       - name: Run Trivy vulnerability scanner on docker container
-        uses: aquasecurity/trivy-action@0.34.2
+        uses: aquasecurity/trivy-action@0.35.0
         env:
           TRIVY_SKIP_VERSION_CHECK: true
         with:
@@ -217,7 +217,7 @@ jobs:
           fetch-depth: '0'  
             
       - name: Run Trivy in GitHub SBOM mode and submit results to Dependency Graph
-        uses: aquasecurity/trivy-action@0.34.2
+        uses: aquasecurity/trivy-action@0.35.0
         with:
           scan-type: 'fs'
           format: 'github'
@@ -226,7 +226,7 @@ jobs:
           github-pat: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Run Trivy in for SPDX mode for Octopus Deploy
-        uses: aquasecurity/trivy-action@0.34.2
+        uses: aquasecurity/trivy-action@0.35.0
         with:
           scan-type: 'fs'
           format: 'spdx-json'
