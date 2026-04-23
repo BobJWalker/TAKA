@@ -46,11 +46,11 @@
       },
       "NLog.Extensions.Logging": {
         "type": "Direct",
-        "requested": "[6.1.1, )",
-        "resolved": "6.1.1",
-        "contentHash": "vSPYZGV77KRfDJP+V05OGRhKApfAtL9DyILdB5WDcWzBkx64AYjYnG1lf/kE2FS++6HdHhPtSCUJTSYOVQJNTg==",
+        "requested": "[6.1.2, )",
+        "resolved": "6.1.2",
+        "contentHash": "CDak9fN3yqDrmFth5OX/8WpRdEhHOHDK9O4Lej4oWG0r9MygEKfwZXgl1F5ixSnz0Sk3aW/3a/irjtttJUGDDw==",
         "dependencies": {
-          "NLog": "6.1.0"
+          "NLog": "6.1.1"
         }
       },
       "NLog.Targets.Syslog": {
@@ -65,11 +65,11 @@
       },
       "NLog.Web.AspNetCore": {
         "type": "Direct",
-        "requested": "[6.1.1, )",
-        "resolved": "6.1.1",
-        "contentHash": "N6WM+l5qjd/JtyC/zqdy1rUCyxjyBl0gWtXOCpP+C4nbNwBty1ao4ZqrNv/GYh2IUS4M7jHgBU5gOUfAVCzAew==",
+        "requested": "[6.1.2, )",
+        "resolved": "6.1.2",
+        "contentHash": "PLXSRq7SYKhneMMd7+Ds4/gOVg++CDNpdN67ke6gp837aW4e70aQWuhMFHVL4YnFpO1UL+5QGEHP4w9wKZfwtg==",
         "dependencies": {
-          "NLog.Extensions.Logging": "6.1.1"
+          "NLog.Extensions.Logging": "6.1.2"
         }
       },
       "Octopus.OpenFeature": {
@@ -107,8 +107,8 @@
       },
       "NLog": {
         "type": "Transitive",
-        "resolved": "6.1.0",
-        "contentHash": "K4UdxS4fuJeCM0sm+JTXWoJgOtcXX7X5kvE94bR07UB8JOB6A2+ski7q1tf2qdv+N0H3gsoWtteScJCHa3+zpw=="
+        "resolved": "6.1.1",
+        "contentHash": "TCIwfAQX2IpZDnqs/+c5jCPnveCG8M6/wFmUk2odjRl0xiocfe4B+4qIvRbVbazSxcS28+Zu14pFeRJE9yAQAQ=="
       },
       "NUglify": {
         "type": "Transitive",
