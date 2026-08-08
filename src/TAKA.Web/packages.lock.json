@@ -74,11 +74,12 @@
       },
       "Octopus.OpenFeature": {
         "type": "Direct",
-        "requested": "[2.0.0, )",
-        "resolved": "2.0.0",
-        "contentHash": "SFOpEmpwkkseBCArnIdos37XnjWz1uZZc0rzHArsvQf0pJsvv2Je184JL5ZGHU/NAErztKeSHcqJ6TpgwU55Pw==",
+        "requested": "[2.1.0, )",
+        "resolved": "2.1.0",
+        "contentHash": "t/rtZ9uUyLUGf78mIs1KGFRyg9Q0eV68kpXCnfZUTdDZXf3ff9dEPzoPLB2K7MmUuV1v3KEQAcdjMrCTn2Ak9g==",
         "dependencies": {
-          "OpenFeature": "2.11.1"
+          "OpenFeature": "2.11.1",
+          "murmurhash": "1.0.3"
         }
       },
       "OpenFeature.Contrib.Providers.EnvVar": {
@@ -104,6 +105,11 @@
         "type": "Transitive",
         "resolved": "8.1.0",
         "contentHash": "O2QT+0DSTBR2Ojpacmcj3L0KrnnXTFrwLl/OW1lBUDiHhb89msHEHNhTA8AlK3jdFiAfMbAYyQaJVvRe6oSBcQ=="
+      },
+      "murmurhash": {
+        "type": "Transitive",
+        "resolved": "1.0.3",
+        "contentHash": "56dW8jgSsvGs/tULn+r1UbS+o0rBvgMj+6Lta6uao4j8Kzx1kVxMf56LPKO070VqjWcGyMB4K4R6M4gVKutG9A=="
       },
       "NLog": {
         "type": "Transitive",
